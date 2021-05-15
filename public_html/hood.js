@@ -1,4 +1,4 @@
-window.addEventListener('load', () =>
+const hood = (state) =>
 {
   const iframes = document.querySelectorAll('iframe');
   const handles = document.querySelectorAll('li.handle');
@@ -25,6 +25,7 @@ window.addEventListener('load', () =>
     {
       iframes.forEach(toggle_out(position, 'hidden'));
       handles.forEach(toggle_in(position, 'selected'));
+      state.current_page = state.page_list[position];
     }
 
     element.ondblclick = () =>
@@ -42,7 +43,4 @@ window.addEventListener('load', () =>
   handles.forEach(selectSection);
   handles.forEach(reloadSection);
   handles.forEach(inspectSection);
-
-  if(null === document.querySelector('li.handle.selected'))
-    handles[0].click();
-});
+};

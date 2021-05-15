@@ -78,6 +78,20 @@ $config =
 		]
 	];
 
+$state =
+	[ 'current_page' =>
+		isset($_GET['current'])
+			&& in_array(array_keys($config['page_list']), $_GET['current'], true)
+			? $_GET['current']
+			:
+				(
+					isset($config['default_page'])
+						? $config['default_page']
+						: array_keys($config['page_list'])[0]
+				)
+	, 'page_list' =>
+		array_keys($config['page_list'])
+	];
 $errors = [];
 
 if(isset($_GET['page']))
@@ -99,6 +113,10 @@ if(isset($_GET['page']))
           href='hood.css'
           defer
           />
+    <script type='application/javascript'>
+      const state = <?= json_encode($state) ?>;
+      window.addEventListener('load', () => { hood(state); });
+    </script>
   </head>
   <body>
 <?php if(count($errors)): ?>
@@ -116,7 +134,7 @@ if(isset($_GET['page']))
 <?php foreach($config['page_list'] as $page_id => $page_config): ?>
         <li id='<?= htmlentities($page_id, ENT_QUOTES) ?>'
             class='handle
-<?php   if(@$config['default_page'] === $page_id): ?>
+<?php   if($state['current_page'] === $page_id): ?>
                    selected
 <?php   endif ?>
             '
@@ -138,7 +156,7 @@ if(isset($_GET['page']))
 
 <?php foreach($config['page_list'] as $page_id => $page_config): ?>
     <iframe src='?page=<?= htmlentities($page_id, ENT_QUOTES) ?>'
-<?php   if(@$config['default_page'] !== $page_id): ?>
+<?php   if(@$state['current_page'] !== $page_id): ?>
             class='hidden'
 <?php   endif ?>
             ></iframe>

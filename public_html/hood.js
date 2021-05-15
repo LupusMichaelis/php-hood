@@ -43,5 +43,6 @@ window.addEventListener('load', () =>
   handles.forEach(reloadSection);
   handles.forEach(inspectSection);
 
-  handles[0].click();
+  if(null === document.querySelector('li.handle.selected'))
+    handles[0].click();
 });

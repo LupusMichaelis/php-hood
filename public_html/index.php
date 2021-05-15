@@ -4,6 +4,7 @@ $config =
     [ 'page_list' =>
         [ 'php-info' =>
 			[ 'title' => 'PHP Infos'
+			, 'feature_list' => ['reloader']
 			, 'controller' => function(array & $config)
 				{
 					phpinfo();
@@ -12,6 +13,7 @@ $config =
 			]
         , 'apcu-info' =>
 			[ 'title' => 'APCu Infos'
+			, 'feature_list' => ['reloader']
 			, 'controller' => function(array & $config)
 				{
 					if(!file_exists('apc.php'))
@@ -31,6 +33,7 @@ $config =
 			]
 		, 'apcu-stats' =>
 			[ 'title' => 'APCu stats'
+			, 'feature_list' => ['reloader', 'inspector']
 			, 'controller' => function(array & $config)
 				{
 					header('Content-type: application/json');
@@ -39,8 +42,8 @@ $config =
 			]
 		, 'memcache-stats' =>
 			[ 'title' => 'Memcache infos'
-			, 'controller' =>
-				function(array & $config)
+			, 'feature_list' => ['reloader', 'inspector']
+			, 'controller' => function(array & $config)
 				{
 					$class_exists = class_exists('\Memcache');
 					$con = new Memcache;
@@ -65,13 +68,15 @@ $config =
 				}
 			]
         ]
-    , 'apc' =>
-        [ 'provided-monitor' => '/usr/share/php7/apcu/apc.php'
-        ]
-    , 'memcache' =>
-        [ [ 'localhost', 11211 ]
-        ]
-    ];
+	, 'default_page' => 'apcu-info'
+	, 'apc' =>
+		[ 'provided-monitor' => '/usr/share/php7/apcu/apc.php'
+		]
+	, 'memcache' =>
+		[ [ 'localhost', 11211 ]
+		, [ 'cache', 11211 ]
+		]
+	];
 
 $errors = [];
 
@@ -108,20 +113,36 @@ if(isset($_GET['page']))
 <?php endif ?>
     <nav>
       <ol>
-        <li id='php-info' class='handle'>PHP Infos
-          <i class='reloader'>&#128472;</i></li>
-        <li id='apcu-info' class='handle'>APCu Infos
-          <i class='reloader'>&#128472;</i></li>
-        <li id='apcu-stats' class='handle'>APCu stats
-          <i class='reloader'>&#128472;</i>
-          <i class='inspector'>&rdca;</i></li>
-        <li class='handle'>Memcache stats
-          <i class='reloader'>&#128472;</i>
-          <i class='inspector'>&rdca;</i></li>
+<?php foreach($config['page_list'] as $page_id => $page_config): ?>
+        <li id='<?= htmlentities($page_id, ENT_QUOTES) ?>'
+            class='handle
+<?php   if(@$config['default_page'] === $page_id): ?>
+                   selected
+<?php   endif ?>
+            '
+            ><?= htmlentities($page_config['title']) ?>
+<?php   if(!empty($page_config['feature_list'])): ?>
+<?php     foreach($page_config['feature_list'] as $feature): ?>
+<?php       if('reloader' === $feature): ?>
+              <i class='reloader'>&#128472;</i>
+<?php       endif ?>
+<?php       if('inspector' === $feature): ?>
+          <i class='inspector'>&rdca;</i>
+<?php       endif ?>
+<?php     endforeach ?>
+<?php   endif ?>
+        </li>
+<?php endforeach ?>
       </ol>
     </nav>
 
-    <iframe class='hidden' src='?page=php-info'></iframe>
+<?php foreach($config['page_list'] as $page_id => $page_config): ?>
+    <iframe src='?page=<?= htmlentities($page_id, ENT_QUOTES) ?>'
+<?php   if(@$config['default_page'] !== $page_id): ?>
+            class='hidden'
+<?php   endif ?>
+            ></iframe>
+<?php endforeach ?>
     <iframe class='hidden' src='?page=apcu-info'></iframe>
     <iframe class='hidden' src='?page=apcu-stats'></iframe>
     <iframe class='hidden' src='?page=memcache-stats'></iframe>

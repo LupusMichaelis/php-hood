@@ -2,55 +2,68 @@
 
 $config =
     [ 'page_list' =>
-        [ 'php-info' => function(array & $config)
-            {
-                phpinfo();
-                die();
-            }
-        , 'apcu-info' => function(array & $config)
-            {
-                if(!file_exists('apc.php'))
-                {
-                    $copied = @copy($config['apc']['provided-monitor'], 'apc.php');
+        [ 'php-info' =>
+			[ 'title' => 'PHP Infos'
+			, 'controller' => function(array & $config)
+				{
+					phpinfo();
+					die();
+				}
+			]
+        , 'apcu-info' =>
+			[ 'title' => 'APCu Infos'
+			, 'controller' => function(array & $config)
+				{
+					if(!file_exists('apc.php'))
+					{
+						$copied = @copy($config['apc']['provided-monitor'], 'apc.php');
 
-                    if(!$copied)
-                        $errors[] = sprintf
-                            ( 'Couldn\'t copy \'%s\' because \'%s\''
-                            , $config['apc']['provided-monitor']
-                            , error_get_last()['message']
-                            );
-                }
-                header('Location: ./apc.php');
-                die();
-            }
-        , 'apcu-stats' => function(array & $config)
-            {
-                header('Content-type: application/json');
-                die(json_encode(apcu_cache_info()));
-            }
-        , 'memcache-stats' => function(array & $config)
-            {
-                $class_exists = class_exists('\Memcache');
-                $con = new Memcache;
-                $is_instanciated = (bool) $con;
+						if(!$copied)
+							$errors[] = sprintf
+								( 'Couldn\'t copy \'%s\' because \'%s\''
+								, $config['apc']['provided-monitor']
+								, error_get_last()['message']
+								);
+					}
+					header('Location: ./apc.php');
+					die();
+				}
+			]
+		, 'apcu-stats' =>
+			[ 'title' => 'APCu stats'
+			, 'controller' => function(array & $config)
+				{
+					header('Content-type: application/json');
+					die(json_encode(apcu_cache_info()));
+				}
+			]
+		, 'memcache-stats' =>
+			[ 'title' => 'Memcache infos'
+			, 'controller' =>
+				function(array & $config)
+				{
+					$class_exists = class_exists('\Memcache');
+					$con = new Memcache;
+					$is_instanciated = (bool) $con;
 
-                $connections = [];
-                if($con)
-                {
-                    foreach($config['memcache'] as [$host, $port])
-                        $connections["$host:$port"] =
-                            @$con->connect($host, $port)
-                                ? 'succeed'
-                                : 'failed'
-                                ;
-                }
+					$connections = [];
+					if($con)
+					{
+						foreach($config['memcache'] as [$host, $port])
+							$connections["$host:$port"] =
+								@$con->connect($host, $port)
+									? 'succeed'
+									: 'failed'
+									;
+					}
 
-                $stats = @$con->getStats();
-                $con->close();
+					$stats = @$con->getStats();
+					$con->close();
 
-                header('Content-type: application/json');
-                die(json_encode(compact('class_exists', 'is_instanciated', 'connections', 'stats')));
-            }
+					header('Content-type: application/json');
+					die(json_encode(compact('class_exists', 'is_instanciated', 'connections', 'stats')));
+				}
+			]
         ]
     , 'apc' =>
         [ 'provided-monitor' => '/usr/share/php7/apcu/apc.php'
@@ -64,11 +77,11 @@ $errors = [];
 
 if(isset($_GET['page']))
 {
-    $page = $_GET['page'];
-    if(isset($config['page_list'][$page]))
-        $config['page_list'][$page]($config);
-    else
-        $errors[] = sprintf('Page \'%s\' not supported', $page);
+	$page = $_GET['page'];
+	if(isset($config['page_list'][$page]['controller']))
+		$config['page_list'][$page]['controller']($config);
+	else
+		$errors[] = sprintf('Page \'%s\' not supported', $page);
 }
 ?>
 <!DOCTYPE html>

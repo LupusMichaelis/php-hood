@@ -81,7 +81,7 @@ $config =
 $state =
 	[ 'current_page' =>
 		isset($_GET['current'])
-			&& in_array(array_keys($config['page_list']), $_GET['current'], true)
+			&& in_array($_GET['current'], array_keys($config['page_list']), true)
 			? $_GET['current']
 			:
 				(

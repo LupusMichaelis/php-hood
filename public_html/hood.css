@@ -49,6 +49,11 @@ nav ol li.selected
 {
   background: gold;
 }
+nav ol li a
+{
+  text-decoration: none;
+  color: inherit;
+}
 nav ol li i
 {
   font-size: 120%;

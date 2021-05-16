@@ -62,6 +62,9 @@ const hood = (given_state) =>
 
     element.ondblclick = () =>
       iframes[position].src += '';
+
+    const anchor_list = element.querySelectorAll('a');
+    anchor_list.forEach((tag) => tag.onclick = (ev) => ev.preventDefault());
   };
 
   const render = (state) =>

@@ -155,17 +155,18 @@ if(isset($_GET['page']))
                    selected
 <?php   endif ?>
             '
-            ><?= htmlentities($page_config['title']) ?>
+            ><a href='?current=<?= htmlentities($page_id) ?>'><?= htmlentities($page_config['title']) ?>
 <?php   if(!empty($page_config['feature_list'])): ?>
 <?php     foreach($page_config['feature_list'] as $feature): ?>
 <?php       if('reloader' === $feature): ?>
               <i class='reloader'>&#128472;</i>
 <?php       endif ?>
 <?php       if('inspector' === $feature): ?>
-          <i class='inspector'>&rdca;</i>
+          <i class='inspector'>&neArr;</i>
 <?php       endif ?>
 <?php     endforeach ?>
 <?php   endif ?>
+          </a>
         </li>
 <?php endforeach ?>
       </ol>

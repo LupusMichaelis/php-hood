@@ -56,32 +56,46 @@ $config =
 			, 'feature_list' => ['reloader', 'inspector']
 			, 'controller' => function(array & $config)
 				{
-					[ $is_instanciated, $connections, $stats ] = [ null, null, null];
+					$payload = [];
+					$memcache_classes = [ '\Memcache', '\Memcached' ];
 
-					$class_exists = class_exists('\Memcache');
-
-					if($class_exists)
+					// We assume both classes have the same interface for this basic job
+					foreach($memcache_classes as $memcache_class)
 					{
-						$con = new Memcache;
-						$is_instanciated = (bool) $con;
+						[ $is_instanciated, $connections, $stats ] = [ null, null, null];
 
-						$connections = [];
-						if($con)
+						$class_exists = class_exists($memcache_class);
+
+						if($class_exists)
 						{
-							foreach($config['memcache'] as [$host, $port])
-								$connections["$host:$port"] =
-									@$con->connect($host, $port)
-										? 'succeed'
-										: 'failed'
-										;
+							$con = new $memcache_class;
+							$is_instanciated = (bool) $con;
+
+							$connections = [];
+							if($con)
+							{
+								foreach($config['memcache'] as [$host, $port])
+									$connections["$host:$port"] =
+										@$con->addServer($host, $port)
+											? 'succeed'
+											: 'failed'
+											;
+							}
+
+							$stats = @$con->getStats();
+							$con->close();
 						}
 
-						$stats = @$con->getStats();
-						$con->close();
+						$payload[$memcache_class] = compact
+							( 'class_exists'
+							, 'is_instanciated'
+							, 'connections'
+							, 'stats'
+							);
 					}
 
 					header('Content-type: application/json');
-					die(json_encode(compact('class_exists', 'is_instanciated', 'connections', 'stats')));
+					die(json_encode($payload));
 				}
 			]
         ]

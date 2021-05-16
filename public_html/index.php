@@ -51,42 +51,63 @@ $config =
 					die(json_encode(['error' => 'Function \'\\apcu_cache_info\' doesn\'t exist']));
 				}
 			]
-		, 'memcache-stats' =>
+		, 'memcached-stats' =>
 			[ 'title' => 'Memcache infos'
 			, 'feature_list' => ['reloader', 'inspector']
-			, 'controller' => function(array & $config)
+			, 'controller' => new class
 				{
-					$payload = [];
-					$memcache_classes = [ '\Memcache', '\Memcached' ];
+					var $config = [];
 
-					// We assume both classes have the same interface for this basic job
-					foreach($memcache_classes as $memcache_class)
+					function __invoke(array & $config)
 					{
-						[ $is_instanciated, $connections, $stats ] = [ null, null, null];
+						$this->config = $config;
 
-						$class_exists = class_exists($memcache_class);
+						$payload = [];
+						foreach
+							(
+								[ 'memcache' => 'check_memcache'
+								, 'memcached' => 'check_memcached'
+								] as $extension => $method
+							)
+							$payload[$extension] = $this->$method();
+
+						header('Content-type: application/json');
+						die(json_encode($payload));
+					}
+
+					function check_memcache()
+					{
+						[ $is_instanciated, $connections, $stats ] = [ null, null, []];
+						$class_exists = class_exists('\Memcache');
 
 						if($class_exists)
 						{
-							$con = new $memcache_class;
+							$con = new \Memcache;
 							$is_instanciated = (bool) $con;
 
 							$connections = [];
 							if($con)
 							{
-								foreach($config['memcache'] as [$host, $port])
-									$connections["$host:$port"] =
-										@$con->addServer($host, $port)
+								foreach($this->config['memcached'] as [$host, $port])
+								{
+									$host_port = "$host:$port";
+									$connections[$host_port] =
+										@$con->connect($host, $port)
 											? 'succeed'
 											: 'failed'
 											;
+
+									$stats[$host_port] = $con->getStats();
+								}
+
+								$con->close();
 							}
 
-							$stats = @$con->getStats();
-							$con->close();
+							$stats[] = @$con->getStats();
+							unset($con);
 						}
 
-						$payload[$memcache_class] = compact
+						return compact
 							( 'class_exists'
 							, 'is_instanciated'
 							, 'connections'
@@ -94,8 +115,57 @@ $config =
 							);
 					}
 
-					header('Content-type: application/json');
-					die(json_encode($payload));
+					function check_memcached()
+					{
+						[ $is_instanciated, $connections, $stats, $beacon ] = [ null, null, [], []];
+						$class_exists = class_exists('\Memcached');
+
+						if($class_exists)
+						{
+							$con = new \Memcached;
+							$is_instanciated = (bool) $con;
+
+							$connections = [];
+							if($con)
+							{
+								foreach($this->config['memcached'] as [$host, $port])
+								{
+									$host_port = "$host:$port";
+									$connections[$host_port] =
+										@$con->addServer($host, $port)
+											? 'succeed'
+											: 'failed'
+											;
+
+									$beacon[$host_port] = $this->beacon($con);
+									$stats[$host_port] = $con->getStats();
+
+									// If an added server's failing, the whole pool is
+									// failing and no stat can be gathered
+									$con->resetServerList();
+								}
+							}
+
+							$stats[] = @$con->getStats();
+							unset($con);
+						}
+						return compact
+							( 'class_exists'
+							, 'is_instanciated'
+							, 'connections'
+							, 'stats'
+							, 'beacon'
+							);
+					}
+
+					function beacon(\Memcached $con, $beacon = 0)
+					{
+						$con->add('beacon', $beacon)
+							or $beacon = $con->increment('beacon')
+							or $con->set('beacon', $beacon);
+
+						return $beacon;
+					}
 				}
 			]
         ]
@@ -103,7 +173,7 @@ $config =
 	, 'apc' =>
 		[ 'provided-monitor' => '/usr/share/php7/apcu/apc.php'
 		]
-	, 'memcache' =>
+	, 'memcached' =>
 		[ [ 'localhost', 11211 ]
 		, [ 'cache', 11211 ]
 		]

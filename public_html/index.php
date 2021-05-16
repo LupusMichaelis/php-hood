@@ -26,9 +26,16 @@ $config =
 								, $config['apc']['provided-monitor']
 								, error_get_last()['message']
 								);
+
+						header('HTTP/1.1 404 Not found');
+						header('Content-type: text/plain');
+						die(sprintf('File \'%s\' not found', 'apc.php'));
 					}
-					header('Location: ./apc.php');
-					die();
+					else
+					{
+						header('Location: ./apc.php');
+						die();
+					}
 				}
 			]
 		, 'apcu-stats' =>
@@ -37,7 +44,11 @@ $config =
 			, 'controller' => function(array & $config)
 				{
 					header('Content-type: application/json');
-					die(json_encode(apcu_cache_info()));
+
+					if(function_exists('\apcu_cache_info'))
+						die(json_encode(apcu_cache_info()));
+
+					die(json_encode(['error' => 'Function \'\\apcu_cache_info\' doesn\'t exist']));
 				}
 			]
 		, 'memcache-stats' =>
@@ -45,23 +56,29 @@ $config =
 			, 'feature_list' => ['reloader', 'inspector']
 			, 'controller' => function(array & $config)
 				{
+					[ $is_instanciated, $connections, $stats ] = [ null, null, null];
+
 					$class_exists = class_exists('\Memcache');
-					$con = new Memcache;
-					$is_instanciated = (bool) $con;
 
-					$connections = [];
-					if($con)
+					if($class_exists)
 					{
-						foreach($config['memcache'] as [$host, $port])
-							$connections["$host:$port"] =
-								@$con->connect($host, $port)
-									? 'succeed'
-									: 'failed'
-									;
-					}
+						$con = new Memcache;
+						$is_instanciated = (bool) $con;
 
-					$stats = @$con->getStats();
-					$con->close();
+						$connections = [];
+						if($con)
+						{
+							foreach($config['memcache'] as [$host, $port])
+								$connections["$host:$port"] =
+									@$con->connect($host, $port)
+										? 'succeed'
+										: 'failed'
+										;
+						}
+
+						$stats = @$con->getStats();
+						$con->close();
+					}
 
 					header('Content-type: application/json');
 					die(json_encode(compact('class_exists', 'is_instanciated', 'connections', 'stats')));

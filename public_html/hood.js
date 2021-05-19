@@ -18,19 +18,31 @@ const indexOfPage = (state, page_name) =>
     state.page_list.indexOf(state.current_page);
 
 
-const inspectSection = (element, position) =>
+const section_inspector = (element, position) =>
 {
   const iframes = document.querySelectorAll('iframe');
   element.querySelectorAll('i.inspector').forEach( (e) => e.onclick =
     () => window.open(iframes[position].src, '_blank'));
 }
 
-const reloadSection = (element, position) =>
+const section_reloader = (element, position) =>
 {
   const iframes = document.querySelectorAll('iframe');
 
   element.querySelectorAll('i.reloader').forEach( (e) => e.onclick =
     () => iframes[position].src += '');
+}
+
+const section_remover = (element, position) =>
+{
+  const iframes = document.querySelectorAll('iframe');
+
+  element.querySelectorAll('i.remover').forEach( (e) => e.onclick =
+    () =>
+    {
+      iframes[position].parentNode.removeChild(iframes[position]);
+      element.parentNode.removeChild(element);
+    });
 }
 
 const check_state = (given_state) =>
@@ -53,7 +65,7 @@ const hood = (given_state) =>
     render(state);
   };
 
-  const selectSection = (element, position) =>
+  const section_selecter = (element, position) =>
   {
     const iframes = document.querySelectorAll('iframe');
 
@@ -78,9 +90,10 @@ const hood = (given_state) =>
     const handles = document.querySelectorAll('li.handle');
     handles.forEach(toggle_in(indexOfPage(state), 'selected'));
 
-    handles.forEach(selectSection);
-    handles.forEach(reloadSection);
-    handles.forEach(inspectSection);
+    handles.forEach(section_selecter);
+    handles.forEach(section_reloader);
+    handles.forEach(section_remover);
+    handles.forEach(section_inspector);
   };
 
   render(initial_state);

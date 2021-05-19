@@ -239,7 +239,9 @@ if(isset($_GET['page']))
                    selected
 <?php   endif ?>
             '
-            ><a href='?current=<?= htmlentities($page_id) ?>'><?= htmlentities($page_config['title']) ?>
+            ><a href='?current=<?= htmlentities($page_id) ?>'>
+              <i class='remover'>&cross;</i>
+              <?= htmlentities($page_config['title']) ?>
 <?php   if(!empty($page_config['feature_list'])): ?>
 <?php     foreach($page_config['feature_list'] as $feature): ?>
 <?php       if('reloader' === $feature): ?>
@@ -263,9 +265,6 @@ if(isset($_GET['page']))
 <?php   endif ?>
             ></iframe>
 <?php endforeach ?>
-    <iframe class='hidden' src='?page=apcu-info'></iframe>
-    <iframe class='hidden' src='?page=apcu-stats'></iframe>
-    <iframe class='hidden' src='?page=memcache-stats'></iframe>
 
     <div class='hidden'>
       <script defer

@@ -1,11 +1,11 @@
 <?php
 
-$config =
+$app =
     [ 'page_list' =>
         [ 'php-info' =>
 			[ 'title' => 'PHP Infos'
 			, 'feature_list' => ['reloader']
-			, 'controller' => function(array & $config)
+			, 'controller' => function(array & $app)
 				{
 					phpinfo();
 					die();
@@ -14,16 +14,16 @@ $config =
         , 'apcu-info' =>
 			[ 'title' => 'APCu Infos'
 			, 'feature_list' => ['reloader']
-			, 'controller' => function(array & $config)
+			, 'controller' => function(array & $app)
 				{
 					if(!file_exists('apc.php'))
 					{
-						$copied = @copy($config['apc']['provided-monitor'], 'apc.php');
+						$copied = @copy($app['apc']['provided-monitor'], 'apc.php');
 
 						if(!$copied)
 							$errors[] = sprintf
 								( 'Couldn\'t copy \'%s\' because \'%s\''
-								, $config['apc']['provided-monitor']
+								, $app['apc']['provided-monitor']
 								, error_get_last()['message']
 								);
 
@@ -41,7 +41,7 @@ $config =
 		, 'apcu-stats' =>
 			[ 'title' => 'APCu stats'
 			, 'feature_list' => ['reloader', 'inspector']
-			, 'controller' => function(array & $config)
+			, 'controller' => function(array & $app)
 				{
 					header('Content-type: application/json');
 
@@ -56,11 +56,11 @@ $config =
 			, 'feature_list' => ['reloader', 'inspector']
 			, 'controller' => new class
 				{
-					var $config = [];
+					var $app = [];
 
-					function __invoke(array & $config)
+					function __invoke(array & $app)
 					{
-						$this->config = $config;
+						$this->config = $app;
 
 						$payload = [];
 						foreach
@@ -182,24 +182,24 @@ $config =
 $state =
 	[ 'current_page' =>
 		isset($_GET['current'])
-			&& in_array($_GET['current'], array_keys($config['page_list']), true)
+			&& in_array($_GET['current'], array_keys($app['page_list']), true)
 			? $_GET['current']
 			:
 				(
-					isset($config['default_page'])
-						? $config['default_page']
-						: array_keys($config['page_list'])[0]
+					isset($app['default_page'])
+						? $app['default_page']
+						: array_keys($app['page_list'])[0]
 				)
 	, 'page_list' =>
-		array_keys($config['page_list'])
+		array_keys($app['page_list'])
 	];
 $errors = [];
 
 if(isset($_GET['page']))
 {
 	$page = $_GET['page'];
-	if(isset($config['page_list'][$page]['controller']))
-		$config['page_list'][$page]['controller']($config);
+	if(isset($app['page_list'][$page]['controller']))
+		$app['page_list'][$page]['controller']($app);
 	else
 		$errors[] = sprintf('Page \'%s\' not supported', $page);
 }
@@ -232,7 +232,7 @@ if(isset($_GET['page']))
 <?php endif ?>
     <nav>
       <ol>
-<?php foreach($config['page_list'] as $page_id => $page_config): ?>
+<?php foreach($app['page_list'] as $page_id => $page_config): ?>
         <li id='<?= htmlentities($page_id, ENT_QUOTES) ?>'
             class='handle
 <?php   if($state['current_page'] === $page_id): ?>
@@ -258,7 +258,7 @@ if(isset($_GET['page']))
       </ol>
     </nav>
 
-<?php foreach($config['page_list'] as $page_id => $page_config): ?>
+<?php foreach($app['page_list'] as $page_id => $page_config): ?>
     <iframe src='?page=<?= htmlentities($page_id, ENT_QUOTES) ?>'
 <?php   if(@$state['current_page'] !== $page_id): ?>
             class='hidden'

@@ -1,0 +1,12 @@
+<?php
+
+return
+	[ 'default_page' => 'php-info'
+	, 'apc' =>
+		[ 'provided-monitor' => '/usr/share/php7/apcu/apc.php'
+		]
+	, 'memcached' =>
+		[ [ 'localhost', 11211 ]
+		, [ 'cache', 11211 ]
+		]
+	];

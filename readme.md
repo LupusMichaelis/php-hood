@@ -3,7 +3,7 @@
 This is a quick tool to install in your deployment of PHP, to get an idea of what's
 happening.
 
-# Security
+## Security
 
 *This tool exposes sensitive data, please take precautions like restricting access to it*
 
@@ -41,3 +41,18 @@ git clone git@github.com:LupusMichaelis/php-hood.git php-hood
 ```
 
 You should be able to access through `https://example.org/.hood/index.php`.
+
+## Configuration
+
+By default, PHP hood will try to load a file `config.php` in the parent directory to load
+its configuration. If it fails, it will look for `config.php-dist` and copy it into
+`config.php`. This file is then editable.
+
+If those filenames and locations don't suit your needs, you can provide them through
+environment variables:
+
+- `HOOD_DIST_CONFIG`: the distribution configuration file name
+- `HOOD_CONFIG`: configuration's file name
+
+Beware to allow them to trickle down your execution environment (`variable_orders`
+directive containing `E`; deactivate `clear_env` in PHP FPM, etc).

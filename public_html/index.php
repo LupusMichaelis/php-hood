@@ -1,4 +1,35 @@
-<?php
+<?php declare(strict_types=1);
+
+namespace LupusMichaelis\PHPHood;
+
+spl_autoload_register(new class
+	{
+		const install_path = '/home/anvil/hood-lib';
+		const script_suffix = '.php';
+
+		function __invoke(string $class_fqn)
+		{
+			if(0 !== stripos($class_fqn, __NAMESPACE__))
+				return;
+
+			$vendor_class_name = substr($class_fqn, strlen(__NAMESPACE__));
+			$include_file = $this->getInstallPath()
+				. str_replace('\\', '/', $vendor_class_name)
+				. $this->getScriptSuffix();
+
+			require $include_file;
+		}
+
+		private function getScriptSuffix(): string
+		{
+			return self::script_suffix;
+		}
+
+		private function getInstallPath(): string
+		{
+			return self::install_path;
+		}
+	});
 
 $app =
     [ 'page_list' =>
@@ -16,26 +47,38 @@ $app =
 			, 'feature_list' => ['reloader']
 			, 'controller' => function(array & $app)
 				{
-					if(!file_exists('apc.php'))
+					if(file_exists('apc.php'))
 					{
-						$copied = @copy($app['apc']['provided-monitor'], 'apc.php');
+						header('Location: ./apc.php');
+						die();
+					}
 
-						if(!$copied)
-							$errors[] = sprintf
-								( 'Couldn\'t copy \'%s\' because \'%s\''
-								, $app['apc']['provided-monitor']
-								, error_get_last()['message']
-								);
+					if(!isset($app['config']['apc']['provided-monitor']))
+					{
+						header('HTTP/1.1 404 Not found');
+						header('Content-type: text/plain');
+						die('APCu hood not configured');
+					}
+
+					$apc_scriptname = $app['config']['apc']['provided-monitor'];
+
+					$copied = @copy($apc_scriptname, 'apc.php');
+
+					if(!$copied)
+					{
+						$app['errors'][] = sprintf
+							( 'Couldn\'t copy \'%s\' because \'%s\''
+							, $app['config']['apc']['provided-monitor']
+							, error_get_last()['message']
+							);
 
 						header('HTTP/1.1 404 Not found');
 						header('Content-type: text/plain');
 						die(sprintf('File \'%s\' not found', 'apc.php'));
 					}
-					else
-					{
-						header('Location: ./apc.php');
-						die();
-					}
+
+					header('Location: ./apc.php');
+					die();
 				}
 			]
 		, 'apcu-stats' =>
@@ -60,7 +103,7 @@ $app =
 
 					function __invoke(array & $app)
 					{
-						$this->config = $app;
+						$this->config = $app['config'];
 
 						$payload = [];
 						foreach
@@ -119,8 +162,9 @@ $app =
 					{
 						[ $is_instanciated, $connections, $stats, $beacon ] = [ null, null, [], []];
 						$class_exists = class_exists('\Memcached');
+						$is_configured = isset($this->config['memcached']) ? true : false;
 
-						if($class_exists)
+						if($class_exists && $is_configured)
 						{
 							$con = new \Memcached;
 							$is_instanciated = (bool) $con;
@@ -151,6 +195,7 @@ $app =
 						}
 						return compact
 							( 'class_exists'
+							, 'is_configured'
 							, 'is_instanciated'
 							, 'connections'
 							, 'stats'
@@ -169,31 +214,24 @@ $app =
 				}
 			]
         ]
-	, 'default_page' => 'apcu-info'
-	, 'apc' =>
-		[ 'provided-monitor' => '/usr/share/php7/apcu/apc.php'
-		]
-	, 'memcached' =>
-		[ [ 'localhost', 11211 ]
-		, [ 'cache', 11211 ]
-		]
 	];
 
-$state =
+$app['errors'] = [];
+$app['config'] = (new Config($app['errors']))->get();
+$app['state'] =
 	[ 'current_page' =>
 		isset($_GET['current'])
 			&& in_array($_GET['current'], array_keys($app['page_list']), true)
 			? $_GET['current']
 			:
 				(
-					isset($app['default_page'])
-						? $app['default_page']
+					isset($app['config']['default_page'])
+						? $app['config']['default_page']
 						: array_keys($app['page_list'])[0]
 				)
 	, 'page_list' =>
 		array_keys($app['page_list'])
 	];
-$errors = [];
 
 if(isset($_GET['page']))
 {
@@ -201,7 +239,7 @@ if(isset($_GET['page']))
 	if(isset($app['page_list'][$page]['controller']))
 		$app['page_list'][$page]['controller']($app);
 	else
-		$errors[] = sprintf('Page \'%s\' not supported', $page);
+		$app['errors'][] = sprintf('Page \'%s\' not supported', $page);
 }
 ?>
 <!DOCTYPE html>
@@ -215,15 +253,15 @@ if(isset($_GET['page']))
           defer
           />
     <script type='application/javascript'>
-      const state = <?= json_encode($state) ?>;
+      const state = <?= json_encode($app['state']) ?>;
       window.addEventListener('load', () => { hood(state); });
     </script>
   </head>
   <body>
-<?php if(count($errors)): ?>
+<?php if(count($app['errors'])): ?>
     <div class='error'>
       <span>Errors occurred:</span>
-<?php   foreach($errors as $error): ?>
+<?php   foreach($app['errors'] as $error): ?>
       <ul>
         <li><?= htmlentities($error) ?></li>
       </ul>
@@ -235,7 +273,7 @@ if(isset($_GET['page']))
 <?php foreach($app['page_list'] as $page_id => $page_config): ?>
         <li id='<?= htmlentities($page_id, ENT_QUOTES) ?>'
             class='handle
-<?php   if($state['current_page'] === $page_id): ?>
+<?php   if($app['state']['current_page'] === $page_id): ?>
                    selected
 <?php   endif ?>
             '
@@ -260,7 +298,7 @@ if(isset($_GET['page']))
 
 <?php foreach($app['page_list'] as $page_id => $page_config): ?>
     <iframe src='?page=<?= htmlentities($page_id, ENT_QUOTES) ?>'
-<?php   if(@$state['current_page'] !== $page_id): ?>
+<?php   if(@$app['state']['current_page'] !== $page_id): ?>
             class='hidden'
 <?php   endif ?>
             ></iframe>

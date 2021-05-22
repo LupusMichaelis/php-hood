@@ -41,10 +41,10 @@ class Config
 
 	public function &get(): array
 	{
-		if(empty($this->config))
+		if(empty($this->actual))
 			$this->load();
 
-		return $this->config;
+		return $this->actual;
 	}
 
 	public function getTemplatePath(): string
@@ -108,7 +108,7 @@ class Config
 			return false;
 		}
 
-		$this->config = $config;
+		$this->actual = $config;
 
 		return true;
 	}
@@ -136,7 +136,7 @@ class Config
 			return false;
 		}
 
-		$this->config = $config;
+		$this->actual = $config;
 	}
 
 
@@ -145,6 +145,6 @@ class Config
 		, 'dist-filename' => null
 		, 'template-path' => null
 		];
-	private $config = [];
+	private $actual = [];
 	private $errors;
 }

@@ -4,17 +4,37 @@ namespace LupusMichaelis\PHPHood;
 
 class Config
 {
-	const default_filename = '../config.php';
-	const default_dist_filename = '../config.php-dist';
+	const default_path_config =
+		[ 'template-path' =>
+			[ 'value' => '../templates'
+			, 'environment' => 'HOOD_TEMPLATE_PATH'
+			]
+		, 'dist-filename' =>
+			[ 'value' => '../config.php-dist'
+			, 'environment' => 'HOOD_DIST_CONFIG'
+			]
+		, 'filename' =>
+			[ 'value' => '../config.php'
+			, 'environment' => 'HOOD_CONFIG'
+			]
+		];
 
-	public function __construct(array & $e)
+	public function __construct()
 	{
-		$this->error_collector = $e;
+		$this->errors = new Errors;
+	}
+
+	public function bindErrors(Errors $errors): void
+	{
+		if(count($this->errors))
+			$this->errors[] = 'Errors are being ignored';
+
+		$this->errors = $errors;
 	}
 
 	public function load(): bool
 	{
-		return $this->figure_filename_out()
+		return $this->figure_out('filename')
 			&& $this->load_file()
 			|| $this->create_and_load();
 	}
@@ -27,22 +47,34 @@ class Config
 		return $this->config;
 	}
 
-	private function figure_filename_out(): bool
+	public function getTemplatePath(): string
 	{
-		$this->config_filename = isset($_ENV['HOOD_CONFIG'])
-			? $_ENV['HOOD_CONFIG']
-			: self::default_filename;
+		if(!$this->figure_out('template-path'))
+		{
+			$e = 'Can\'t find where to look for templates';
+			$this->errors[] = $e;
+			throw new \Exception($e);
+		}
 
-		return $this->check_localness($this->config_filename);
+		return $this->file_list['template-path'];
 	}
 
-	private function figure_dist_filename_out(): bool
+	private function figure_out(string $key): bool
 	{
-		$this->dist_filename = isset($_ENV['HOOD_DIST_CONFIG'])
-			? $_ENV['HOOD_DIST_CONFIG']
-			: self::default_dist_filename;
+		$this->file_list[$key] = $this->value_or_default($key);
+		return $this->check_localness($this->file_list[$key]);
+	}
 
-		return $this->check_localness($this->dist_filename);
+	private function value_or_default(string $what): string
+	{
+		if(!isset(self::default_path_config[$what]))
+			throw new \Exception(sprintf('No defaults for \'%s\'', $what));
+
+		['environment' => $environment, 'value' => $value ] = self::default_path_config[$what];
+
+		return isset($_ENV[$environment])
+			? $_ENV[$environment]
+			: $value;
 	}
 
 	private function check_localness(string $filename): bool
@@ -62,10 +94,19 @@ class Config
 
 	private function load_file(): bool
 	{
-		$config = @include $this->config_filename;
+		if(!$this->figure_out('filename'))
+		{
+			$this->errors[] = 'Can\'t find where to look for config file';
+			return false;
+		}
+
+		$config = @include $this->file_list['filename'];
 
 		if(empty($config))
+		{
+			$this->errors[] = sprintf('Couldn\'t load %s', $this->file_list['filename']);
 			return false;
+		}
 
 		$this->config = $config;
 
@@ -74,16 +115,16 @@ class Config
 
 	private function create_and_load(): bool
 	{
-		if(!$this->figure_dist_filename_out())
+		if(!$this->figure_out('dist-filename'))
 		{
-			$this->error_collector[] = 'Can\'t find where to look for distribution config file';
+			$this->errors[] = 'Can\'t find where to look for distribution config file';
 			return false;
 		}
 
-		$copied = @copy($this->dist_filename, $this->config_filename);
+		$copied = @copy($this->file_list['dist-filename'], $this->file_list['filename']);
 		if(!$copied)
 		{
-			$this->error_collector[] = error_get_last();
+			$this->errors[] = error_get_last();
 			return false;
 		}
 
@@ -91,14 +132,19 @@ class Config
 
 		if(empty($config))
 		{
-			$this->error_collector[] = error_get_last();
+			$this->errors[] = error_get_last();
 			return false;
 		}
 
 		$this->config = $config;
 	}
 
-	private $config_filename = self::default_filename;
+
+	private $file_list =
+		[ 'config-filename' => null
+		, 'dist-filename' => null
+		, 'template-path' => null
+		];
 	private $config = [];
-	private $error_collector = [];
+	private $errors;
 }

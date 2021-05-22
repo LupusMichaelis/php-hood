@@ -7,7 +7,9 @@ happening.
 
 *This tool exposes sensitive data, please take precautions like restricting access to it*
 
-## Prepare apache
+## Prepare Apache
+
+Most of web servers follow the same logic. Please adapt to your use case.
 
 First secure the location you will expose. Here an Apache configuration for your
 conveniance. Save this in the Apache configuration file if possible, or default down to
@@ -48,11 +50,18 @@ By default, PHP hood will try to load a file `config.php` in the parent director
 its configuration. If it fails, it will look for `config.php-dist` and copy it into
 `config.php`. This file is then editable.
 
+If you mount a readonly filesystem, please copy manually the file and adapt it to your
+need.
+
 If those filenames and locations don't suit your needs, you can provide them through
-environment variables:
+environment variables.
 
-- `HOOD_DIST_CONFIG`: the distribution configuration file name
-- `HOOD_CONFIG`: configuration's file name
+| Name | Default | Description |
+| --- | --- | --- |
+| `HOOD_DIST_CONFIG` | `../config.php-dist` | the distribution configuration file path |
+| `HOOD_CONFIG` | `../config.php` | configuration's file path |
+| `HOOD_TEMPLATE_PATH` | `../templates` | where we find the templates |
 
-Beware to allow them to trickle down your execution environment (`variable_orders`
+Beware to allow them to trickle down your execution environment
+([`variables_order`](https://www.php.net/manual/en/ini.core.php#ini.variables-order)
 directive containing `E`; deactivate `clear_env` in PHP FPM, etc).

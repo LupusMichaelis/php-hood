@@ -27,6 +27,11 @@ $errors = $this->errors;
     </script>
   </head>
   <body>
+
+<?php if(isset($form)): ?>
+<?= $form ?>
+<?php endif ?>
+
     <nav>
       <ol>
 <?php foreach($state['tab_list'] as $page_id): ?>
@@ -54,6 +59,7 @@ $errors = $this->errors;
         </li>
 <?php endforeach ?>
       </ol>
+      <a href='?add-tab'><i class='add_tab'>&plus;</i></a>
     </nav>
 
 <?php foreach($state['tab_list'] as $page_id): ?>

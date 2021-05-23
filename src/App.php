@@ -41,9 +41,31 @@ class App
 		{
 			$page = $_GET['page'];
 			if(isset($this->page_list[$page]['controller']))
-				$this->runController($this->page_list[$page]['controller']);
+				$this->runPageController($this->page_list[$page]['controller']);
 			else
 				$this->errors[] = sprintf('App \'%s\' not supported', $page);
+		}
+
+		if(isset($_GET['add-tab']))
+		{
+			ob_start();
+			$success = include $this->getTemplateFor('add-tab-form');
+
+			if(false === $success)
+				ob_flush();
+			else
+				$form = ob_get_clean();
+		}
+
+		if(isset($_POST['add-tab']))
+		{
+			$page_id = $_POST['add-tab'];
+			if(isset($this->page_list[$page_id]))
+				$this->state['tab_list'][] = $_POST['add-tab'];
+			else
+				$this->errors[] = sprintf('Unkown page \'%s\'', $page_id);
+
+			unset($page_id);
 		}
 
 		include $this->getTemplateFor('index');
@@ -69,7 +91,7 @@ class App
 		return $this->page_list;
 	}
 
-	private function runController($controller): void
+	private function runPageController($controller): void
 	{
 		if(is_callable($controller))
 		{

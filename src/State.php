@@ -22,7 +22,7 @@ class State
 		return isset($this->actual[$offset]);
 	}
 
-	public function offsetGet($offset)
+	public function &offsetGet($offset)
 	{
 		return $this->actual[$offset];
 	}

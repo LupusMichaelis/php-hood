@@ -4,8 +4,8 @@ if(!isset($this) && !($this instanceof \LupusMichaelis\PHPHood\Page))
 	throw new \LupusMichaelis\PHPHood\TemplateContextError;
 
 $app = $this;
-$state = &$this->state;
-$page_list = &$this->page_list;
+$state = $this->getState();
+$page_list = $this->getPageList();
 $errors = $this->errors;
 
 ?>
@@ -29,7 +29,8 @@ $errors = $this->errors;
   <body>
     <nav>
       <ol>
-<?php foreach($page_list as $page_id => $page_config): ?>
+<?php foreach($state['tab_list'] as $page_id): ?>
+<?php $page_config = $this->getPageList()[$page_id]; ?>
         <li id='<?= htmlentities($page_id, ENT_QUOTES) ?>'
             class='handle
 <?php   if($state['current_tab'] === $page_id): ?>
@@ -55,10 +56,11 @@ $errors = $this->errors;
       </ol>
     </nav>
 
-<?php foreach($page_list as $page_id => $page_config): ?>
+<?php foreach($state['tab_list'] as $page_id): ?>
+<?php   $page_config = $this->getPageList()[$page_id]; ?>
     <iframe src='?page=<?= htmlentities($page_id, ENT_QUOTES) ?>'
             loading='lazy'
-<?php   if(@$$state['current_tab'] !== $page_id): ?>
+<?php   if(@$state['current_tab'] !== $page_id): ?>
             class='hidden'
 <?php   endif ?>
             ></iframe>

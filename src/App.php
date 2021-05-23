@@ -9,9 +9,33 @@ class App
 		, 'json' => 'application/json'
 		];
 
+	public function __construct()
+	{
+		$this->errors = new Errors;
+		$this->initializeState();
+	}
+
 	public function run(): void
 	{
 		$config = $this->getConfiguration();
+
+		$state = new State(
+			[ 'current_tab' =>
+				isset($_GET['current'])
+					&& in_array($_GET['current'], array_keys($this->page_list), true)
+					? $_GET['current']
+					:
+						(
+							isset($config->get()['default_page'])
+								? $config->get()['default_page']
+								: array_keys($this->page_list)[0]
+						)
+			, 'tab_list' =>
+				[ key($this->page_list) ]
+			, 'feature_list' =>
+				array_keys($this->page_list)
+			]);
+		$this->setState($state);
 
 		if(isset($_GET['page']))
 		{
@@ -28,6 +52,21 @@ class App
 	public function logError(string $message): void
 	{
 		$this->errors[] = $message;
+	}
+
+	public function getState(): State
+	{
+		return clone $this->state;
+	}
+
+	public function setState(State $new_state): void
+	{
+		$this->state = clone $new_state;
+	}
+
+	public function getPageList(): array
+	{
+		return $this->page_list;
 	}
 
 	private function runController($controller): void
@@ -75,7 +114,12 @@ class App
 		return $this->configuration;
 	}
 
-	public $page_list =
+	private function initializeState()
+	{
+		$this->state = new State([]);
+	}
+
+	private $page_list =
 		[ 'php-info' =>
 			[ 'title' => 'PHP Infos'
 			, 'feature_list' => ['reloader']
@@ -97,12 +141,7 @@ class App
 			, 'controller' => Controllers\MemcachedStatsPage::class
 			]
 		];
-	public $state = [];
+	private $state;
 	private $errors;
 	private $configuration;
-
-	public function __construct()
-	{
-		$this->errors = new Errors;
-	}
 }

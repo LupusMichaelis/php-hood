@@ -32,20 +32,4 @@ spl_autoload_register(new class
 	});
 
 $app = new App;
-
-$app->state =
-	[ 'current_tab' =>
-		isset($_GET['current'])
-			&& in_array($_GET['current'], array_keys($app->page_list), true)
-			? $_GET['current']
-			:
-				(
-					isset($app->getConfiguration()->get()['default_page'])
-						? $app->getConfiguration()->get()['default_page']
-						: array_keys($app->page_list)[0]
-				)
-	, 'tab_list' =>
-		array_keys($app->page_list)
-	];
-
 $app->run();

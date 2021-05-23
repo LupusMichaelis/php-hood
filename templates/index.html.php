@@ -20,6 +20,7 @@ $errors = $this->errors;
           defer
           />
     <script type='application/javascript'>
+      'use strict';
       const state = <?= json_encode($state) ?>;
       window.addEventListener('load', () => { hood(state); });
     </script>

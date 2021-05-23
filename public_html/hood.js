@@ -1,3 +1,5 @@
+'use strict';
+
 const toggle_out = (offset, className) =>
   ( element, position) =>
     (

@@ -32,7 +32,7 @@ $errors = $this->errors;
 <?php foreach($page_list as $page_id => $page_config): ?>
         <li id='<?= htmlentities($page_id, ENT_QUOTES) ?>'
             class='handle
-<?php   if($state['current_page'] === $page_id): ?>
+<?php   if($state['current_tab'] === $page_id): ?>
                    selected
 <?php   endif ?>
             '
@@ -58,7 +58,7 @@ $errors = $this->errors;
 <?php foreach($page_list as $page_id => $page_config): ?>
     <iframe src='?page=<?= htmlentities($page_id, ENT_QUOTES) ?>'
             loading='lazy'
-<?php   if(@$$state['current_page'] !== $page_id): ?>
+<?php   if(@$$state['current_tab'] !== $page_id): ?>
             class='hidden'
 <?php   endif ?>
             ></iframe>

@@ -17,7 +17,7 @@ const toggle_in = (offset, className) =>
     ) && element.classList.toggle(className);
 
 const indexOfPage = (state, page_name) =>
-  state.page_list.indexOf(state.current_page);
+  state.tab_list.indexOf(state.current_tab);
 
 const refresh_iframe = (iframe) =>
   iframe.src += '';
@@ -43,7 +43,7 @@ const actions =
   (element, position) =>
   {
     element.onclick = () =>
-      set_state({current_page: initial_state.page_list[position]});
+      set_state({current_tab: initial_state.tab_list[position]});
 
     element.ondblclick = () =>
       refresh_iframe(iframes[position]);
@@ -56,8 +56,8 @@ const actions =
 const check_state = (given_state) =>
 {
   const virgin_state =
-  { current_page: null
-  , page_list: []
+  { current_tab: null
+  , tab_list: []
   };
 
   return {...virgin_state, ...given_state};
@@ -75,7 +75,7 @@ const hood = (given_state) =>
 
   const render = (state) =>
   {
-    const search_part = new URLSearchParams({current: state.current_page});
+    const search_part = new URLSearchParams({current: state.current_tab});
     window.history.pushState('' + search_part, '', '?' + search_part);
 
     const iframes = document.querySelectorAll('iframe');

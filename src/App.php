@@ -17,12 +17,34 @@ class App
 		{
 			$page = $_GET['page'];
 			if(isset($this->page_list[$page]['controller']))
-				$this->page_list[$page]['controller']($this);
+				$this->runController($this->page_list[$page]['controller']);
 			else
 				$this->errors[] = sprintf('App \'%s\' not supported', $page);
 		}
 
 		include $this->getTemplateFor('index');
+	}
+
+	public function logError(string $message): void
+	{
+		$this->errors[] = $message;
+	}
+
+	private function runController($controller): void
+	{
+		if(is_callable($controller))
+		{
+			$controller($this);
+			return;
+		}
+
+		if(is_string($controller) && class_exists($controller))
+		{
+			(new $controller)($this);
+			return;
+		}
+
+		throw new \Exception('Improper controller');
 	}
 
 	public function getTemplateFor($name, $type='html'): ?string
@@ -66,7 +88,7 @@ class App
 			[ 'php-info' =>
 				[ 'title' => 'PHP Infos'
 				, 'feature_list' => ['reloader']
-				, 'controller' => function(App $app)
+				, 'controller' => function(App $app): void
 					{
 						phpinfo();
 						die();
@@ -75,41 +97,7 @@ class App
 			, 'apcu-info' =>
 				[ 'title' => 'APCu Infos'
 				, 'feature_list' => ['reloader']
-				, 'controller' => function(App $app)
-					{
-						if(file_exists('apc.php'))
-						{
-							header('Location: ./apc.php');
-							die();
-						}
-
-						if(!isset($this->configuration->get()['apc']['provided-monitor']))
-						{
-							header('HTTP/1.1 404 Not found');
-							header('Content-type: text/plain');
-							die('APCu hood not configured');
-						}
-
-						$apc_scriptname = $this->configuration->get()['apc']['provided-monitor'];
-
-						$copied = @copy($apc_scriptname, 'apc.php');
-
-						if(!$copied)
-						{
-							$app->errors[] = sprintf
-								( 'Couldn\'t copy \'%s\' because \'%s\''
-								, $this->configuration->get()['apc']['provided-monitor']
-								, error_get_last()['message']
-								);
-
-							header('HTTP/1.1 404 Not found');
-							header('Content-type: text/plain');
-							die(sprintf('File \'%s\' not found', 'apc.php'));
-						}
-
-						header('Location: ./apc.php');
-						die();
-					}
+				, 'controller' => Controllers\ApcPage::class
 				]
 			, 'apcu-stats' =>
 				[ 'title' => 'APCu stats'
@@ -131,7 +119,7 @@ class App
 					{
 						var $app = [];
 
-						function __invoke(App $app)
+						function __invoke(App $app): void
 						{
 							$this->config = $app->getConfiguration()->get();
 

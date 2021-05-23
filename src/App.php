@@ -11,31 +11,40 @@ class App
 
 	public function __construct()
 	{
+		ob_start();
 		$this->errors = new Errors;
-		$this->initializeState();
+	}
+
+	public function __destruct()
+	{
+		$this->saveStateToCookie();
+		ob_flush();
 	}
 
 	public function run(): void
 	{
 		$config = $this->getConfiguration();
-
-		$state = new State(
-			[ 'current_tab' =>
-				isset($_GET['current'])
-					&& in_array($_GET['current'], array_keys($this->page_list), true)
-					? $_GET['current']
-					:
-						(
-							isset($config->get()['default_page'])
-								? $config->get()['default_page']
-								: array_keys($this->page_list)[0]
-						)
-			, 'tab_list' =>
-				[ key($this->page_list) ]
-			, 'feature_list' =>
-				array_keys($this->page_list)
-			]);
-		$this->setState($state);
+		$this->fetchStateFromCookie();
+		if(empty($this->state))
+		{
+			$state = new State(
+				[ 'current_tab' =>
+					isset($_GET['current'])
+						&& in_array($_GET['current'], array_keys($this->page_list), true)
+						? $_GET['current']
+						:
+							(
+								isset($config->get()['default_page'])
+									? $config->get()['default_page']
+									: array_keys($this->page_list)[0]
+							)
+				, 'tab_list' =>
+					[ key($this->page_list) ]
+				, 'feature_list' =>
+					array_keys($this->page_list)
+				]);
+			$this->setState($state);
+		}
 
 		if(isset($_GET['page']))
 		{
@@ -136,9 +145,21 @@ class App
 		return $this->configuration;
 	}
 
-	private function initializeState()
+	private function saveStateToCookie()
 	{
-		$this->state = new State([]);
+		$cookie = sprintf('Set-Cookie: %s=%s; Expires=%s; SameSite=Lax; Path=/'
+			, __class__
+			, urlencode(json_encode($this->state))
+			, gmdate('D, d M Y H:i:s T', time() + 365 * 3600)
+			);
+
+		header($cookie);
+	}
+
+	private function fetchStateFromCookie()
+	{
+		$state = \json_decode($_COOKIE[__CLASS__], true);
+		$this->state = new State($state);
 	}
 
 	private $page_list =

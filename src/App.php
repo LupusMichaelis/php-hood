@@ -88,11 +88,7 @@ class App
 			[ 'php-info' =>
 				[ 'title' => 'PHP Infos'
 				, 'feature_list' => ['reloader']
-				, 'controller' => function(App $app): void
-					{
-						phpinfo();
-						die();
-					}
+				, 'controller' => [ Controllers\BasicPage::class, 'PHPInfo' ]
 				]
 			, 'apcu-info' =>
 				[ 'title' => 'APCu Infos'
@@ -102,15 +98,7 @@ class App
 			, 'apcu-stats' =>
 				[ 'title' => 'APCu stats'
 				, 'feature_list' => ['reloader', 'inspector']
-				, 'controller' => function()
-					{
-						header('Content-type: application/json');
-
-						if(function_exists('\apcu_cache_info'))
-							die(json_encode(apcu_cache_info()));
-
-						die(json_encode(['error' => 'Function \'\\apcu_cache_info\' doesn\'t exist']));
-					}
+				, 'controller' => [ Controllers\BasicPage::class, 'APCUStats' ]
 				]
 			, 'memcached-stats' =>
 				[ 'title' => 'Memcache infos'

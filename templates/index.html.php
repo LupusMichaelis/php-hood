@@ -36,12 +36,12 @@ $errors = $this->errors;
 <?php   endif ?>
             '
             ><a href='?current=<?= htmlentities($page_id) ?>'>
-              <i class='remover'>&cross;</i>
+              <i class='close_tab'>&cross;</i>
               <?= htmlentities($page_config['title']) ?>
 <?php   if(!empty($page_config['feature_list'])): ?>
 <?php     foreach($page_config['feature_list'] as $feature): ?>
 <?php       if('reloader' === $feature): ?>
-              <i class='reloader'>&#128472;</i>
+              <i class='reload_tab'>&#128472;</i>
 <?php       endif ?>
 <?php       if('inspector' === $feature): ?>
           <i class='inspector'>&neArr;</i>

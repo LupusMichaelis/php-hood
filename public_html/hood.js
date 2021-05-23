@@ -17,35 +17,50 @@ const toggle_in = (offset, className) =>
     ) && element.classList.toggle(className);
 
 const indexOfPage = (state, page_name) =>
-    state.page_list.indexOf(state.current_page);
+  state.page_list.indexOf(state.current_page);
 
+const actions =
+{ open_inspector: (element, position) =>
+  {
+    const iframes = document.querySelectorAll('iframe');
+    element.querySelectorAll('i.inspector').forEach( (e) => e.onclick =
+      () => window.open(iframes[position].src, '_blank'));
+  }
 
-const section_inspector = (element, position) =>
-{
-  const iframes = document.querySelectorAll('iframe');
-  element.querySelectorAll('i.inspector').forEach( (e) => e.onclick =
-    () => window.open(iframes[position].src, '_blank'));
-}
+, reload_tab: (element, position) =>
+  {
+    const iframes = document.querySelectorAll('iframe');
 
-const section_reloader = (element, position) =>
-{
-  const iframes = document.querySelectorAll('iframe');
+    element.querySelectorAll('i.reload_tab').forEach( (e) => e.onclick =
+      () => iframes[position].src += '');
+  }
 
-  element.querySelectorAll('i.reloader').forEach( (e) => e.onclick =
-    () => iframes[position].src += '');
-}
+, close_tab: (element, position) =>
+  {
+    const iframes = document.querySelectorAll('iframe');
 
-const section_remover = (element, position) =>
-{
-  const iframes = document.querySelectorAll('iframe');
+    element.querySelectorAll('i.close_tab').forEach( (e) => e.onclick =
+      () =>
+      {
+        iframes[position].parentNode.removeChild(iframes[position]);
+        element.parentNode.removeChild(element);
+      });
+  }
+, select_tab: ({set_state, initial_state}) =>
+  (element, position) =>
+  {
+    const iframes = document.querySelectorAll('iframe');
 
-  element.querySelectorAll('i.remover').forEach( (e) => e.onclick =
-    () =>
-    {
-      iframes[position].parentNode.removeChild(iframes[position]);
-      element.parentNode.removeChild(element);
-    });
-}
+    element.onclick = () =>
+      set_state({current_page: initial_state.page_list[position]});
+
+    element.ondblclick = () =>
+      iframes[position].src += '';
+
+    const anchor_list = element.querySelectorAll('a');
+    anchor_list.forEach((tag) => tag.onclick = (ev) => ev.preventDefault());
+  }
+};
 
 const check_state = (given_state) =>
 {
@@ -67,20 +82,6 @@ const hood = (given_state) =>
     render(state);
   };
 
-  const section_selecter = (element, position) =>
-  {
-    const iframes = document.querySelectorAll('iframe');
-
-    element.onclick = () =>
-      set_state({current_page: initial_state.page_list[position]});
-
-    element.ondblclick = () =>
-      iframes[position].src += '';
-
-    const anchor_list = element.querySelectorAll('a');
-    anchor_list.forEach((tag) => tag.onclick = (ev) => ev.preventDefault());
-  };
-
   const render = (state) =>
   {
     const search_part = new URLSearchParams({current: state.current_page});
@@ -92,10 +93,11 @@ const hood = (given_state) =>
     const handles = document.querySelectorAll('li.handle');
     handles.forEach(toggle_in(indexOfPage(state), 'selected'));
 
-    handles.forEach(section_selecter);
-    handles.forEach(section_reloader);
-    handles.forEach(section_remover);
-    handles.forEach(section_inspector);
+    [ actions.select_tab({set_state, initial_state})
+    , actions.reload_tab
+    , actions.close_tab
+    , actions.open_inspector
+    ].forEach(handles.forEach.bind(handles));
   };
 
   render(initial_state);

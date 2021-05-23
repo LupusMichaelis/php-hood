@@ -1,23 +1,26 @@
 'use strict';
 
 const toggle_out = (offset, className) =>
-  ( element, position) =>
+  (element, position) =>
     (
-      ( position === offset && element.classList.contains(className) )
+      (position === offset && element.classList.contains(className))
         ||
-      ( position !== offset && !element.classList.contains(className) )
+      (position !== offset && !element.classList.contains(className))
     ) && element.classList.toggle(className);
 
 const toggle_in = (offset, className) =>
-  ( element, position) =>
+  (element, position) =>
     (
-      ( position !== offset && element.classList.contains(className) )
+      (position !== offset && element.classList.contains(className))
         ||
-      ( position === offset && !element.classList.contains(className) )
+      (position === offset && !element.classList.contains(className))
     ) && element.classList.toggle(className);
 
 const indexOfPage = (state, page_name) =>
   state.page_list.indexOf(state.current_page);
+
+const refresh_iframe = (iframe) =>
+  iframe.src += '';
 
 const actions =
 { open_inspector:({iframes}) =>
@@ -27,7 +30,7 @@ const actions =
 , reload_tab:({iframes}) =>
   (element, position) =>
     element.querySelectorAll('i.reload_tab').forEach( (e) => e.onclick =
-      () => iframes[position].src += '')
+      () => refresh_iframe(iframes[position]))
 , close_tab: ({iframes}) =>
   (element, position) =>
     element.querySelectorAll('i.close_tab').forEach( (e) => e.onclick =
@@ -43,7 +46,7 @@ const actions =
       set_state({current_page: initial_state.page_list[position]});
 
     element.ondblclick = () =>
-      iframes[position].src += '';
+      refresh_iframe(iframes[position]);
 
     const anchor_list = element.querySelectorAll('a');
     anchor_list.forEach((tag) => tag.onclick = (ev) => ev.preventDefault());

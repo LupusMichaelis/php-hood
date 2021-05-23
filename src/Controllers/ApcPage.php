@@ -5,7 +5,7 @@ namespace LupusMichaelis\PHPHood\Controllers;
 use \LupusMichaelis\PHPHood\App;
 
 class ApcPage
-	implements \LupusMichaelis\PHPHood\Controller
+	implements PageInterface
 {
 	public function __invoke(App $app): void
 	{

@@ -75,7 +75,28 @@ class App
 		return $this->configuration;
 	}
 
-	public $page_list = [];
+	public $page_list =
+		[ 'php-info' =>
+			[ 'title' => 'PHP Infos'
+			, 'feature_list' => ['reloader']
+			, 'controller' => [ Controllers\BasicPage::class, 'PHPInfo' ]
+			]
+		, 'apcu-info' =>
+			[ 'title' => 'APCu Infos'
+			, 'feature_list' => ['reloader']
+			, 'controller' => Controllers\ApcPage::class
+			]
+		, 'apcu-stats' =>
+			[ 'title' => 'APCu stats'
+			, 'feature_list' => ['reloader', 'inspector']
+			, 'controller' => [ Controllers\BasicPage::class, 'APCUStats' ]
+			]
+		, 'memcached-stats' =>
+			[ 'title' => 'Memcache infos'
+			, 'feature_list' => ['reloader', 'inspector']
+			, 'controller' => Controllers\MemcachedStatsPage::class
+			]
+		];
 	public $state = [];
 	private $errors;
 	private $configuration;
@@ -83,28 +104,5 @@ class App
 	public function __construct()
 	{
 		$this->errors = new Errors;
-
-		$this->page_list =
-			[ 'php-info' =>
-				[ 'title' => 'PHP Infos'
-				, 'feature_list' => ['reloader']
-				, 'controller' => [ Controllers\BasicPage::class, 'PHPInfo' ]
-				]
-			, 'apcu-info' =>
-				[ 'title' => 'APCu Infos'
-				, 'feature_list' => ['reloader']
-				, 'controller' => Controllers\ApcPage::class
-				]
-			, 'apcu-stats' =>
-				[ 'title' => 'APCu stats'
-				, 'feature_list' => ['reloader', 'inspector']
-				, 'controller' => [ Controllers\BasicPage::class, 'APCUStats' ]
-				]
-			, 'memcached-stats' =>
-				[ 'title' => 'Memcache infos'
-				, 'feature_list' => ['reloader', 'inspector']
-				, 'controller' => Controllers\MemcachedStatsPage::class
-				]
-			];
 	}
 }

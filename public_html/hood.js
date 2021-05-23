@@ -82,12 +82,12 @@ const hood = (given_state) =>
     iframes.forEach(toggle_out(indexOfPage(state), 'hidden'));
 
     const handles = document.querySelectorAll('li.handle');
-    handles.forEach(toggle_in(indexOfPage(state), 'selected'));
 
     [ actions.select_tab({iframes, set_state, initial_state})
     , actions.reload_tab({iframes})
     , actions.close_tab({iframes})
     , actions.open_inspector({iframes})
+    , toggle_in(indexOfPage(state), 'selected')
     ].forEach(handles.forEach.bind(handles));
   };
 

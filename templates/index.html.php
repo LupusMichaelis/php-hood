@@ -19,8 +19,9 @@ $errors = $this->errors;
           href='hood.css'
           defer
           />
-    <script type='application/javascript'>
+    <script type='module'>
       'use strict';
+      import { hood } from './hood.js';
       const state = <?= json_encode($state) ?>;
       window.addEventListener('load', () => { hood(state); });
     </script>
@@ -63,8 +64,7 @@ $errors = $this->errors;
 <?php endforeach ?>
 
     <div class='hidden'>
-      <script defer
-              type='application/javascript'
+      <script type='module'
               src='hood.js'
               ></script>
     </div>

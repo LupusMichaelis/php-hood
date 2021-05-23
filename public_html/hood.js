@@ -20,37 +20,25 @@ const indexOfPage = (state, page_name) =>
   state.page_list.indexOf(state.current_page);
 
 const actions =
-{ open_inspector: (element, position) =>
-  {
-    const iframes = document.querySelectorAll('iframe');
+{ open_inspector:({iframes}) =>
+  (element, position) =>
     element.querySelectorAll('i.inspector').forEach( (e) => e.onclick =
-      () => window.open(iframes[position].src, '_blank'));
-  }
-
-, reload_tab: (element, position) =>
-  {
-    const iframes = document.querySelectorAll('iframe');
-
+      () => window.open(iframes[position].src, '_blank'))
+, reload_tab:({iframes}) =>
+  (element, position) =>
     element.querySelectorAll('i.reload_tab').forEach( (e) => e.onclick =
-      () => iframes[position].src += '');
-  }
-
-, close_tab: (element, position) =>
-  {
-    const iframes = document.querySelectorAll('iframe');
-
+      () => iframes[position].src += '')
+, close_tab: ({iframes}) =>
+  (element, position) =>
     element.querySelectorAll('i.close_tab').forEach( (e) => e.onclick =
       () =>
       {
         iframes[position].parentNode.removeChild(iframes[position]);
         element.parentNode.removeChild(element);
-      });
-  }
-, select_tab: ({set_state, initial_state}) =>
+      })
+, select_tab: ({iframes, set_state, initial_state}) =>
   (element, position) =>
   {
-    const iframes = document.querySelectorAll('iframe');
-
     element.onclick = () =>
       set_state({current_page: initial_state.page_list[position]});
 
@@ -93,10 +81,10 @@ const hood = (given_state) =>
     const handles = document.querySelectorAll('li.handle');
     handles.forEach(toggle_in(indexOfPage(state), 'selected'));
 
-    [ actions.select_tab({set_state, initial_state})
-    , actions.reload_tab
-    , actions.close_tab
-    , actions.open_inspector
+    [ actions.select_tab({iframes, set_state, initial_state})
+    , actions.reload_tab({iframes})
+    , actions.close_tab({iframes})
+    , actions.open_inspector({iframes})
     ].forEach(handles.forEach.bind(handles));
   };
 

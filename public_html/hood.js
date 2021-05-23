@@ -76,7 +76,7 @@ const hood = (given_state) =>
   const render = (state) =>
   {
     const search_part = new URLSearchParams({current: state.current_page});
-    window.history.pushState(search_part, '', '?' + search_part);
+    window.history.pushState('' + search_part, '', '?' + search_part);
 
     const iframes = document.querySelectorAll('iframe');
     iframes.forEach(toggle_out(indexOfPage(state), 'hidden'));

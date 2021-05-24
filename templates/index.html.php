@@ -28,8 +28,8 @@ $errors = $this->errors;
   </head>
   <body>
 
-<?php if(isset($form)): ?>
-<?= $form ?>
+<?php if(isset($state_view)): ?>
+<?= $state_view ?>
 <?php endif ?>
 
     <nav>

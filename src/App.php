@@ -4,11 +4,6 @@ namespace LupusMichaelis\PHPHood;
 
 class App
 {
-	const suffix_to_mime_list =
-		[ 'html' => 'text/html'
-		, 'json' => 'application/json'
-		];
-
 	public function __construct()
 	{
 		ob_start();
@@ -17,64 +12,31 @@ class App
 
 	public function __destruct()
 	{
-		$this->saveStateToCookie();
+		/// unset to force header writing before we flush
+		$this->state_controller = null;
 		ob_flush();
+	}
+
+	private function runStateController(): string
+	{
+		$config = $this->getConfiguration();
+		$this->template_engine = new Template($config);
+		$this->state_controller = new StateController($this);
+		return $this->state_controller->run($config);
 	}
 
 	public function run(): void
 	{
+		$state_view = $this->runStateController();
 		$config = $this->getConfiguration();
-		$this->fetchStateFromCookie();
-		if(empty($this->state))
-		{
-			$state = new State(
-				[ 'current_tab' =>
-					isset($_GET['current'])
-						&& in_array($_GET['current'], array_keys($this->page_list), true)
-						? $_GET['current']
-						:
-							(
-								isset($config->get()['default_page'])
-									? $config->get()['default_page']
-									: array_keys($this->page_list)[0]
-							)
-				, 'tab_list' =>
-					[ key($this->page_list) ]
-				, 'feature_list' =>
-					array_keys($this->page_list)
-				]);
-			$this->setState($state);
-		}
 
 		if(isset($_GET['page']))
 		{
 			$page = $_GET['page'];
-			if(isset($this->page_list[$page]['controller']))
-				$this->runPageController($this->page_list[$page]['controller']);
+			if(isset($config->getPageList()[$page]['controller']))
+				$this->runPageController($config->getPageList()[$page]['controller']);
 			else
 				$this->errors[] = sprintf('App \'%s\' not supported', $page);
-		}
-
-		if(isset($_GET['add-tab']))
-		{
-			ob_start();
-			$success = include $this->getTemplateFor('add-tab-form');
-
-			if(false === $success)
-				ob_flush();
-			else
-				$form = ob_get_clean();
-		}
-
-		if(isset($_POST['add-tab']))
-		{
-			$page_id = $_POST['add-tab'];
-			if(isset($this->page_list[$page_id]))
-				$this->state['tab_list'][] = $_POST['add-tab'];
-			else
-				$this->errors[] = sprintf('Unkown page \'%s\'', $page_id);
-
-			unset($page_id);
 		}
 
 		include $this->getTemplateFor('index');
@@ -87,17 +49,27 @@ class App
 
 	public function getState(): State
 	{
-		return clone $this->state;
+		return $this->state_controller->getModel();
 	}
 
 	public function setState(State $new_state): void
 	{
-		$this->state = clone $new_state;
+		$this->state_controller->setModel($new_state);
+	}
+
+	public function getTemplateEngine(): Template
+	{
+		return $this->template_engine;
+	}
+
+	public function setTemplateEngine(Template $engine): void
+	{
+		$this->template_engine = $engine;
 	}
 
 	public function getPageList(): array
 	{
-		return $this->page_list;
+		return $this->configuration->getPageList();
 	}
 
 	private function runPageController($controller): void
@@ -119,19 +91,7 @@ class App
 
 	public function getTemplateFor($name, $type='html'): ?string
 	{
-		if(!isset(self::suffix_to_mime_list[$type]))
-		{
-			$this->errors[] = sprintf('Can\'t find requested filetype (%s|%s)', $type);
-			return null;
-		}
-
-		$config = $this->getConfiguration();
-		return sprintf
-			( '%s/%s.%s.php'
-			, $config->getTemplatePath()
-			, $name
-			, $type
-			);
+		return $this->template_engine->getFor($name, $type);
 	}
 
 	public function getConfiguration(): Config
@@ -145,46 +105,8 @@ class App
 		return $this->configuration;
 	}
 
-	private function saveStateToCookie()
-	{
-		$cookie = sprintf('Set-Cookie: %s=%s; Expires=%s; SameSite=Lax; Path=/'
-			, __class__
-			, urlencode(json_encode($this->state))
-			, gmdate('D, d M Y H:i:s T', time() + 365 * 3600)
-			);
-
-		header($cookie);
-	}
-
-	private function fetchStateFromCookie()
-	{
-		$state = \json_decode($_COOKIE[__CLASS__], true);
-		$this->state = new State($state);
-	}
-
-	private $page_list =
-		[ 'php-info' =>
-			[ 'title' => 'PHP Infos'
-			, 'feature_list' => ['reloader']
-			, 'controller' => [ Controllers\BasicPage::class, 'PHPInfo' ]
-			]
-		, 'apcu-info' =>
-			[ 'title' => 'APCu Infos'
-			, 'feature_list' => ['reloader']
-			, 'controller' => Controllers\ApcPage::class
-			]
-		, 'apcu-stats' =>
-			[ 'title' => 'APCu stats'
-			, 'feature_list' => ['reloader', 'inspector']
-			, 'controller' => [ Controllers\BasicPage::class, 'APCUStats' ]
-			]
-		, 'memcached-stats' =>
-			[ 'title' => 'Memcache infos'
-			, 'feature_list' => ['reloader', 'inspector']
-			, 'controller' => Controllers\MemcachedStatsPage::class
-			]
-		];
-	private $state;
+	private $template_engine;
+	private $state_controller;
 	private $errors;
 	private $configuration;
 }

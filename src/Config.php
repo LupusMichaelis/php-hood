@@ -59,6 +59,11 @@ class Config
 		return $this->file_list['template-path'];
 	}
 
+	public function getPageList(): array
+	{
+		return $this->page_list;
+	}
+
 	private function figure_out(string $key): bool
 	{
 		$this->file_list[$key] = $this->value_or_default($key);
@@ -147,4 +152,26 @@ class Config
 		];
 	private $actual = [];
 	private $errors;
+	private $page_list =
+		[ 'php-info' =>
+			[ 'title' => 'PHP Infos'
+			, 'feature_list' => ['reloader']
+			, 'controller' => [ Controllers\BasicPage::class, 'PHPInfo' ]
+			]
+		, 'apcu-info' =>
+			[ 'title' => 'APCu Infos'
+			, 'feature_list' => ['reloader']
+			, 'controller' => Controllers\ApcPage::class
+			]
+		, 'apcu-stats' =>
+			[ 'title' => 'APCu stats'
+			, 'feature_list' => ['reloader', 'inspector']
+			, 'controller' => [ Controllers\BasicPage::class, 'APCUStats' ]
+			]
+		, 'memcached-stats' =>
+			[ 'title' => 'Memcache infos'
+			, 'feature_list' => ['reloader', 'inspector']
+			, 'controller' => Controllers\MemcachedStatsPage::class
+			]
+		];
 }

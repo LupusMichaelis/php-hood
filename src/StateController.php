@@ -45,8 +45,23 @@ class StateController
 			if(!isset($config->getPageList()[$page_id]))
 				throw new \Exception(sprintf('Unkown tab \'%s\'', $page_id));
 
-			$this->model['tab_list'][] = $_POST['add-tab'];
+			$this->model['tab_list'][] = $page_id;
 			$view[] = '<div class=\'info\'>Tab added</div>';
+		}
+
+		if(isset($_GET['close-tab']))
+		{
+			$page_id = $_GET['close-tab'];
+			if(!isset($config->getPageList()[$page_id]))
+				throw new \Exception(sprintf('Unkown tab \'%s\'', $page_id));
+
+			$offset = array_search($page_id, $this->model['tab_list']);
+
+			if(false !== $offset)
+			{
+				array_splice($this->model['tab_list'], $offset, 1);
+				$view[] = '<div class=\'info\'>Tab removed</div>';
+			}
 		}
 
 		return implode("\n", $view);

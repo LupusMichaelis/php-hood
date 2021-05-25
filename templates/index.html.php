@@ -37,7 +37,8 @@ $errors = $this->errors;
 <?php   endif ?>
             '
             >
-            <a href='?close-tab' class='close-tab'>&cross;</a>
+            <a href='?close-tab=<?= htmlentities($page_id, ENT_QUOTES) ?>'
+               class='close-tab'>&cross;</a>
             <a href='?select-tab=<?= htmlentities($page_id, ENT_QUOTES) ?>'
                class='select-tab'
                ><?= htmlentities($page_config['title']) ?></a>

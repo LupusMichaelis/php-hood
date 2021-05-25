@@ -36,29 +36,34 @@ $errors = $this->errors;
                    selected
 <?php   endif ?>
             '
-            ><a href='?current=<?= htmlentities($page_id) ?>'>
-              <i class='close_tab'>&cross;</i>
-              <?= htmlentities($page_config['title']) ?>
+            >
+            <a href='?close-tab' class='close-tab'>&cross;</a>
+            <a href='?select-tab=<?= htmlentities($page_id, ENT_QUOTES) ?>'
+               class='select-tab'
+               ><?= htmlentities($page_config['title']) ?></a>
 <?php   if(!empty($page_config['feature_list'])): ?>
 <?php     foreach($page_config['feature_list'] as $feature): ?>
 <?php       if('reloader' === $feature): ?>
-              <i class='reload_tab'>&#128472;</i>
+              <a href='?reload-tab=<?= htmlentities($page_id, ENT_QUOTES) ?>'
+                 class='reload-tab'
+                 >&#128472;</a>
 <?php       endif ?>
 <?php       if('inspector' === $feature): ?>
-          <i class='inspector'>&neArr;</i>
+              <a href='?tab=<?= htmlentities($page_id, ENT_QUOTES) ?>'
+                 class='inspect-tab'
+                 >&neArr;</a>
 <?php       endif ?>
 <?php     endforeach ?>
 <?php   endif ?>
-          </a>
         </li>
 <?php endforeach ?>
       </ol>
-      <a href='?add-tab'><i class='add_tab'>&plus;</i></a>
+      <a href='?add-tab' class='add-tab'>&plus;</a>
     </nav>
 
 <?php foreach($state['tab_list'] as $page_id): ?>
 <?php   $page_config = $this->getPageList()[$page_id]; ?>
-    <iframe src='?page=<?= htmlentities($page_id, ENT_QUOTES) ?>'
+    <iframe src='?tab=<?= htmlentities($page_id, ENT_QUOTES) ?>'
             loading='lazy'
 <?php   if(@$state['current_tab'] !== $page_id): ?>
             class='hidden'

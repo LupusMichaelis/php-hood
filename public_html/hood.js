@@ -22,34 +22,37 @@ const indexOfPage = (state, page_name) =>
 const refresh_iframe = (iframe) =>
   iframe.src += '';
 
+const cancel_default = (cb) => (ev) =>
+{
+  ev.preventDefault();
+  cb();
+  return false;
+};
+
 const actions =
 { open_inspector:({iframes}) =>
   (element, position) =>
-    element.querySelectorAll('i.inspector').forEach( (e) => e.onclick =
-      () => window.open(iframes[position].src, '_blank'))
+    element.querySelectorAll('a.inspect-tab').forEach( (e) => e.onclick =
+      cancel_default(() => window.open(iframes[position].src, '_blank')))
 , reload_tab:({iframes}) =>
   (element, position) =>
-    element.querySelectorAll('i.reload_tab').forEach( (e) => e.onclick =
-      () => refresh_iframe(iframes[position]))
+    element.querySelectorAll('a.reload-tab').forEach( (e) => e.onclick =
+      cancel_default(() => refresh_iframe(iframes[position])))
 , close_tab: ({iframes}) =>
   (element, position) =>
-    element.querySelectorAll('i.close_tab').forEach( (e) => e.onclick =
-      () =>
+    element.querySelectorAll('a.close-tab').forEach( (e) => e.onclick =
+      cancel_default(() =>
       {
         iframes[position].parentNode.removeChild(iframes[position]);
         element.parentNode.removeChild(element);
-      })
+      }))
 , select_tab: ({iframes, set_state, initial_state}) =>
   (element, position) =>
   {
-    element.onclick = () =>
-      set_state({current_tab: initial_state.tab_list[position]});
+    element.onclick = cancel_default(() => set_state({current_tab: initial_state.tab_list[position]}));
 
     element.ondblclick = () =>
       refresh_iframe(iframes[position]);
-
-    const anchor_list = element.querySelectorAll('a');
-    anchor_list.forEach((tag) => tag.onclick = (ev) => ev.preventDefault());
   }
 };
 

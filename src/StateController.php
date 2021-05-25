@@ -24,6 +24,10 @@ class StateController
 		if(!$this->fetchFromCookie())
 			$this->setFromConfiguration($config);
 
+		if(isset($_GET['select-tab'])
+			&& in_array($_GET['select-tab'], array_keys($config->getPageList()), true))
+			$this->model['current_tab'] = $_GET['select-tab'];
+
 		if(isset($_GET['add-tab']))
 		{
 			ob_start();
@@ -39,7 +43,7 @@ class StateController
 		{
 			$page_id = $_POST['add-tab'];
 			if(!isset($config->getPageList()[$page_id]))
-				throw new \Exception(sprintf('Unkown page \'%s\'', $page_id));
+				throw new \Exception(sprintf('Unkown tab \'%s\'', $page_id));
 
 			$this->model['tab_list'][] = $_POST['add-tab'];
 			$view[] = '<div class=\'info\'>Tab added</div>';
@@ -50,14 +54,10 @@ class StateController
 
 	public function setFromConfiguration(Config $config)
 	{
-		if(empty($this->model))
+		if(!$this->model->isValid())
 		{
 			$state = new State(
 				[ 'current_tab' =>
-					isset($_GET['current'])
-						&& in_array($_GET['current'], array_keys($config->getPageList()), true)
-						? $_GET['current']
-						:
 							(
 								isset($config->get()['default_page'])
 									? $config->get()['default_page']
@@ -85,6 +85,9 @@ class StateController
 
 	public function fetchFromCookie(): bool
 	{
+		if(!isset($_COOKIE[static::cookie_name]))
+			return false;
+
 		$state = \json_decode($_COOKIE[static::cookie_name], /* associative = */true);
 		$this->model = new State($state ?: []);
 

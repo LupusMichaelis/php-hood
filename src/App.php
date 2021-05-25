@@ -30,9 +30,9 @@ class App
 		$state_view = $this->runStateController();
 		$config = $this->getConfiguration();
 
-		if(isset($_GET['page']))
+		if(isset($_GET['tab']))
 		{
-			$page = $_GET['page'];
+			$page = $_GET['tab'];
 			if(isset($config->getPageList()[$page]['controller']))
 				$this->runPageController($config->getPageList()[$page]['controller']);
 			else

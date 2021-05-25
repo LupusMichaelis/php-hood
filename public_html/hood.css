@@ -55,7 +55,7 @@ nav a
   text-decoration: none;
   color: inherit;
 }
-nav ol li i
+nav ol li a
 {
   font-size: 120%;
 }

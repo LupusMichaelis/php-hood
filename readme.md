@@ -62,6 +62,9 @@ environment variables.
 | `HOOD_CONFIG` | `../config.php` | configuration's file path |
 | `HOOD_TEMPLATE_PATH` | `../templates` | where we find the templates |
 
+Paths are relative to where `index.php` is ran from (originally
+[`public_html`](./public_html)).
+
 Beware to allow them to trickle down your execution environment
 ([`variables_order`](https://www.php.net/manual/en/ini.core.php#ini.variables-order)
 directive containing `E`; deactivate `clear_env` in PHP FPM, etc).

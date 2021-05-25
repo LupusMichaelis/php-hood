@@ -1,33 +1,12 @@
 'use strict';
 
-const toggle_out = (offset, className) =>
-  (element, position) =>
-    (
-      (position === offset && element.classList.contains(className))
-        ||
-      (position !== offset && !element.classList.contains(className))
-    ) && element.classList.toggle(className);
-
-const toggle_in = (offset, className) =>
-  (element, position) =>
-    (
-      (position !== offset && element.classList.contains(className))
-        ||
-      (position === offset && !element.classList.contains(className))
-    ) && element.classList.toggle(className);
+import {toggle_out, toggle_in, cancel_default} from './helpers.js';
 
 const indexOfPage = (state, page_name) =>
   state.tab_list.indexOf(state.current_tab);
 
 const refresh_iframe = (iframe) =>
   iframe.src += '';
-
-const cancel_default = (cb) => (ev) =>
-{
-  ev.preventDefault();
-  cb();
-  return false;
-};
 
 const actions =
 { open_inspector:({iframes}) =>

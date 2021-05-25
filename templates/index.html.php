@@ -83,10 +83,6 @@ $errors = $this->errors;
 <?php endif ?>
 
     <div class='hidden'>
-      <script type='module'
-              src='./hood.js'
-              ></script>
-
       <script type='module'>
         'use strict';
         import hood from './hood.js';

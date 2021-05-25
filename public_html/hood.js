@@ -94,4 +94,4 @@ const hood = (given_state) =>
   render(initial_state);
 };
 
-export { hood };
+export default hood;

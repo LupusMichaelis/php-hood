@@ -19,12 +19,6 @@ $errors = $this->errors;
           href='hood.css'
           defer
           />
-    <script type='module'>
-      'use strict';
-      import { hood } from './hood.js';
-      const state = <?= json_encode($state) ?>;
-      window.addEventListener('load', () => { hood(state); });
-    </script>
   </head>
   <body>
 
@@ -72,11 +66,6 @@ $errors = $this->errors;
             ></iframe>
 <?php endforeach ?>
 
-    <div class='hidden'>
-      <script type='module'
-              src='hood.js'
-              ></script>
-    </div>
 <?php if(count($errors)): ?>
     <div class='error'>
       <span>Errors occurred:</span>
@@ -87,5 +76,18 @@ $errors = $this->errors;
     </div>
 <?php   endforeach ?>
 <?php endif ?>
+
+    <div class='hidden'>
+      <script type='module'
+              src='./hood.js'
+              ></script>
+
+      <script type='module'>
+        'use strict';
+        import hood from './hood.js';
+        const state = <?= json_encode($state) ?>;
+        window.addEventListener('load', () => { hood(state); });
+      </script>
+    </div>
   </body>
 </html>
